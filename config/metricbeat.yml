@@ -1,0 +1,34 @@
+metricbeat.modules:
+- module: docker
+  metricsets:
+    - info
+    - container
+    - cpu
+    - memory
+    - diskio
+    - network
+    - healthcheck
+  hosts: ["unix:///var/run/docker.sock"]
+  # hosts: ["tcp://vmlx2080tech:2376"]
+  period: 10s
+
+certificate_authority: "/etc/pki/client/ca-docker.pem"
+certificate: "/etc/pki/client/TLS-docker.pem"
+key: "/etc/pki/client/key-docker.key"
+
+fields:
+  env: dev
+
+output:
+  # elasticsearch:
+  # # Array of hosts to connect to.
+  #   hosts: "elasticsearch:9200"
+  #   username: elastic
+  #   password: pass
+
+  logstash:
+    hosts: ["logstash:5044"]
+
+setup.kibana.host: "kibana:5601"
+
+setup.dashboards.enabled: true

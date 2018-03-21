@@ -1,0 +1,21 @@
+#========================== Filebeat prospectors ==============================
+
+filebeat.prospectors:
+- type: docker
+  enabled : true
+  recursive_glob.enabled: true
+  # paths:
+  #   #- /var/log/containers/06f1f3f816c261076c5b9fdc5fc0bab078a2f30109c5590c55600e6ff16e90b6/06f1f3f816c261076c5b9fdc5fc0bab078a2f30109c5590c55600e6ff16e90b6-json.log
+  #   #- /var/log/*.log
+  #   #- /usr/share/filebeat/logs/*/*.log
+  #   - /var/log/containers/*/*.log
+  json.message_key: log
+  json.keys_under_root: true
+  containers.ids : 
+    - '*'
+
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]
+
+setup.kibana:
+  host: "kibana:5601"

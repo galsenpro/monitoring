@@ -1,0 +1,77 @@
+version: "3"
+services:
+  web:
+    build: .
+    container_name: web
+    ports:
+      - "8000:8000"
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${TAG}
+    container_name: elasticsearch
+    environment: 
+      - http.host=0.0.0.0
+      - transport.host=127.0.0.1
+      - ELASTIC_PASSWORD=pass
+    ports:
+      - "9200:9200"
+    restart: always
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:${TAG}
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana
+      - ELASTICSEARCH_PASSWORD=pass
+    ports:
+      - "5601:5601"
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:${TAG}
+    container_name: logstash
+    environment:
+      - TZ=Europe/Paris
+    expose:
+      - "12201"
+      - "5044"
+    ports:
+      - "5044:5044/tcp"
+      - "12201:12201"
+      - "12201:12201/udp"
+    volumes:
+      - ./config/logs.conf:/usr/share/logstash/pipeline/logs.conf
+      - ./config/beats.conf:/usr/share/logstash/pipeline/beats.conf
+      - ./config/pipelines.yml:/usr/share/logstash/config/pipelines.yml
+    command: logstash 
+    logging:
+      driver: json-file 
+    # logging: 
+    #   driver: gelf
+    #   options: 
+    #     gelf-address: udp://localhost:12201
+
+  metricbeat:
+    image: docker.elastic.co/beats/metricbeat:${TAG}
+    # build: metricbeat/
+    container_name: metricbeat
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./certificate/:/etc/pki/client/"
+      - "./config/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml"
+    logging:
+      driver: json-file 
+
+  # filebeat:
+  #   build:
+  #     context: ./beats
+  #     dockerfile: Dockerfile.filebeat
+  #   image: filebeat
+  #   container_name: filebeat
+  #   volumes:
+  #     - "/var/lib/docker/containers:/var/lib/docker/containers:rw"
+  #     - "/var/run/docker.sock:/var/run/docker.sock"
